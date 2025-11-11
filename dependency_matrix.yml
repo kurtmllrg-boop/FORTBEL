@@ -1,0 +1,59 @@
+schema:
+  version: "1.0.0"
+  doc: "FR-CON ↔ FR-MIOI ↔ PO-GOV — Dependency Matrix (motor de coherencia)."
+matrix_checksum: "<sha256-del-archivo-normalizado>"  # reemplazar tras calcular hash
+
+entries:
+  - origin_const: "C1.Homeostasis dinámica"
+    mirror_mioi_process: "cognitive_load_balance"
+    gov_policy_ref: "LoadEqualizationPolicy"
+    agent_binding: ["AG-CAR","AG-CHR"]
+    dependency_type: "thermodynamic-operational"
+
+  - origin_const: "C2.Coherencia jerárquica"
+    mirror_mioi_process: "layer_integrity_map"
+    gov_policy_ref: "GOV.CHK"
+    agent_binding: ["AG-META"]
+    dependency_type: "structural-control"
+
+  - origin_const: "C3.Trazabilidad absoluta"
+    mirror_mioi_process: "ledger_trace"
+    gov_policy_ref: "TraceabilityAudit"
+    agent_binding: ["AG-QA","AG-AVE","AG-MEM"]
+    dependency_type: "documental-ethical"
+
+  - origin_const: "C4.Plasticidad adaptativa"
+    mirror_mioi_process: "mutation_log"
+    gov_policy_ref: "ChangeApprovalGate"
+    agent_binding: ["AG-AVE","AG-HER"]
+    dependency_type: "evolutionary-normative"
+
+  - origin_const: "C5.Entropía regulada"
+    mirror_mioi_process: "data_entropy_reset"
+    gov_policy_ref: "MaintenanceSchedulePolicy"
+    agent_binding: ["AG-QA","AG-CAR"]
+    dependency_type: "maintenance-operational"
+
+  - origin_const: "C6.Sincronía temporal"
+    mirror_mioi_process: "temporal_alignment_check"
+    gov_policy_ref: "ChronoArbiterWindow"
+    agent_binding: ["AG-CHR","AG-QA"]
+    dependency_type: "rhythmic-functional"
+
+  - origin_const: "C7.Ética del propósito"
+    mirror_mioi_process: "purpose_alignment_vector"
+    gov_policy_ref: "EthicalGovernanceAudit"
+    agent_binding: ["AG-AVE","AG-META"]
+    dependency_type: "moral-decisional"
+
+  - origin_const: "C8.Evidencia verificable"
+    mirror_mioi_process: "evidence_dataset"
+    gov_policy_ref: "EvidenceRequiredRule"
+    agent_binding: ["AG-QA","AG-MEM"]
+    dependency_type: "epistemic"
+
+  - origin_const: "C9.Autonomía responsable"
+    mirror_mioi_process: "autonomy_state_index"
+    gov_policy_ref: "AutonomyCap"
+    agent_binding: ["AG-META","AG-AVE"]
+    dependency_type: "freedom-containment"
