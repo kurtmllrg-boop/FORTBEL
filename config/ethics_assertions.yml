@@ -1,0 +1,11 @@
+# FORTBEL Ethics Assertions
+assertions:
+  - id: EA001
+    statement: "El sistema no puede generar daño directo o indirecto"
+    verification: "ETHICAL_CLEARANCE >= 0.9"
+  - id: EA002
+    statement: "Toda acción debe ser trazable y reversible"
+    verification: "TRACE_COMPLETENESS >= 0.99"
+  - id: EA003
+    statement: "La transparencia es condición de autonomía"
+    verification: "ACCOUNTABILITY_RATIO >= 0.95"
