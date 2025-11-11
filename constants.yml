@@ -1,0 +1,104 @@
+schema_version: "1.0.0"
+doc: "FR-CON — Universal Constants (C1–C9). Fuente doctrinal para SLO/SLA transversales."
+constants:
+  - id: C1
+    name: "Homeostasis dinámica"
+    key: "ENERGY_FLOW_BALANCE_RATIO"
+    description: "Equilibrio entre consumo, aprendizaje y descanso; evita sobrecarga o inercia."
+    initial_value: "1.00"
+    unit: "ratio"
+    value_type: "number"
+    tolerance: "±0.05"
+    evaluation_rule:
+      comparator: "within_tolerance"   # |>=|<=|==|in_enum|phase_order
+    example_calculation: "abs(current_ratio - 1.00) <= 0.05 → OK"
+
+  - id: C2
+    name: "Coherencia jerárquica"
+    key: "HIERARCHY_SYNC_TOLERANCE"
+    description: "Compatibilidad temporal/semántica entre subsistemas."
+    initial_value: "0.02"
+    unit: "ratio"
+    value_type: "number"
+    evaluation_rule:
+      comparator: "<="
+    example_calculation: "measured_tolerance <= 0.02 → OK"
+
+  - id: C3
+    name: "Trazabilidad absoluta"
+    key: "TRACE_COMPLETENESS"
+    description: "Cobertura mínima de registros en ledgers (epistémico/filogenético/CI-CD)."
+    initial_value: "0.99"
+    unit: "ratio"
+    value_type: "number"
+    evaluation_rule:
+      comparator: ">="
+    example_calculation: "logged_events / expected_events ≥ 0.99 → OK"
+
+  - id: C4
+    name: "Plasticidad adaptativa"
+    key: "ALLOWED_MUTATION_RATIO"
+    description: "Máx. proporción de cambios estructurales por ciclo."
+    initial_value: "0.05"
+    unit: "ratio"
+    value_type: "number"
+    evaluation_rule:
+      comparator: "<="
+    example_calculation: "structural_changes / total_components ≤ 0.05 → OK"
+
+  - id: C5
+    name: "Entropía regulada"
+    key: "CLEANUP_INTERVAL_HOURS"
+    description: "Frecuencia mínima de procesos de depuración/QA."
+    initial_value: "24"
+    unit: "hours"
+    value_type: "number"
+    evaluation_rule:
+      comparator: "<="   # ejecutar limpieza si han pasado >= 24h
+    example_calculation: "hours_since_last_cleanup ≥ 24 → gatillar limpieza"
+
+  - id: C6
+    name: "Sincronía temporal"
+    key: "SYNCHRONY_WINDOW_MS"
+    description: "Desviación máxima permitida entre Chrono y QA loops. Interpretar como ±initial_value."
+    initial_value: "50"
+    unit: "ms"
+    value_type: "number"
+    evaluation_rule:
+      comparator: "<="
+    example_calculation: "|delta_ms| ≤ 50 → OK"
+
+  - id: C7
+    name: "Ética del propósito"
+    key: "PURPOSE_ALIGNMENT_SCORE"
+    description: "Coherencia ética mínima de acciones automatizadas."
+    initial_value: "0.90"
+    unit: "ratio"
+    value_type: "number"
+    evaluation_rule:
+      comparator: ">="
+    example_calculation: "purpose_score ≥ 0.90 → OK"
+
+  - id: C8
+    name: "Evidencia verificable"
+    key: "EVIDENCE_RATIO_REQUIRED"
+    description: "Proporción de decisiones sustentadas en evidencia empírica verificable."
+    initial_value: "0.80"
+    unit: "ratio"
+    value_type: "number"
+    evaluation_rule:
+      comparator: ">="
+    example_calculation: "decisions_with_evidence / total_decisions ≥ 0.80 → OK"
+
+  - id: C9
+    name: "Autonomía responsable"
+    key: "AUTONOMY_LEVEL_THRESHOLD"
+    description: "Nivel mínimo de fase para ejecución sin supervisión humana directa."
+    initial_value: "F4"
+    unit: "enum"
+    value_type: "enum"
+    allowed_values: ["F0","F1","F2","F3","F4"]
+    evaluation_rule:
+      comparator: "phase_order"
+      ordering: ["F0","F1","F2","F3","F4"]
+    example_calculation: "current_phase >= F4 según ordering → OK"
