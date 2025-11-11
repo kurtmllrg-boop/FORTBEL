@@ -1,0 +1,11 @@
+# FORTBEL Quality Assurance Rules
+QA_BASE:
+  coverage_min: 0.90
+  latency_tolerance_ms: 500
+  drift_threshold: 0.05
+  rollback_policy: strict
+QA_PHASE_REQUIREMENTS:
+  F0: baseline_tests
+  F1: integration_tests
+  F2: ethical_score_validation
+  F3: regression_monitoring

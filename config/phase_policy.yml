@@ -1,0 +1,15 @@
+# FORTBEL Phase Policy Configuration
+F0:
+  autonomy: supervised
+  rollback: mandatory
+F1_to_F3:
+  autonomy: graded
+  requires:
+    - ETHICAL_CLEARANCE >= 0.9
+    - TRACE_COMPLETENESS >= 0.99
+F4_plus:
+  autonomy: conditional
+  requires:
+    - C9
+    - PR-MGOV
+    - PO-EUE.AUD
