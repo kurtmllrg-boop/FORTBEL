@@ -1,0 +1,560 @@
+genome:
+  meta:
+    genome_id: "FORTBEL-genome-v1.0"
+    description: "Mapa genético estructural del organismo digital FORTBEL (Fase 0)"
+    sources:
+      - "FORTBEL.pdf"
+      - "Tabla Maestra de Coherencia (2).pdf"
+      - "Desarrollo por Fases (2).pdf"
+    constants_ref: ["C1","C2","C3","C4","C5","C6","C7","C8","C9"]
+    governance_chain:
+      - "FR-FIL"
+      - "FR-CON"
+      - "FR-MIOI"
+      - "PO-GEN"
+      - "PO-GEN.GOV"
+      - "PR-MGOV"
+      - "PO-EUE"
+    phase_policy:
+      F0:
+        autonomy: "supervised"
+        rollback: "mandatory"
+      F1_to_F3:
+        autonomy: "graded"
+        requires:
+          - "ETHICAL_CLEARANCE>=0.9"
+          - "TRACE_COMPLETENESS>=0.99"
+      F4_plus:
+        autonomy: "conditional"
+        requires:
+          - "C9"
+          - "PR-MGOV"
+          - "PO-EUE.AUD"
+
+  genes:
+    - id: "SY-CHR"
+      name: "Sistema Chrono"
+      nature: "SY"
+      class: "structural"
+      phase_min: "F0"
+      dependencies: ["FR-CON","SY-END","PO-CICD","PO-LOG","PO-GEN","FR-MIOI"]
+      outputs:
+        - "chrono_metrics.json"
+        - "latency_budget.yml"
+        - "chrono_cycle.log"
+        - "window_map.yaml"
+        - "logs/chrono/historial_alarmas.log"
+        - "logs/chrono/rollback.log"
+      slo_sla_ref: ["EDL<=1s","RLM<=500ms","SCI>=0.9","Cumplimiento_ventanas=100%","Conflictos_agenda=0","skew_historico<=umbral"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C3","C6"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+      invariants: ["drift<=threshold","SCI>=0.9"]
+
+    - id: "SY-CHR.CA"
+      name: "Submódulo Chrono Arbiter"
+      nature: "SY"
+      class: "structural"
+      phase_min: "F0"
+      dependencies: ["SY-END","SY-CHR.SLA","PO-GEN","PO-EEI","PO-EEE","PO-LOG","FR-CON","PO-EEE.CHK","PO-EEI.AUD"]
+      outputs: ["arbiter_config.yml","ca_metrics.json","queue_depth.csv","latency_stats.json","priority_queue.log","chronological_clearance.log","cooldown_events.csv"]
+      slo_sla_ref: ["EEI<=50ms","GEN<=150ms","EDL<=1s","RLM<=500ms"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C6"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+      ethical_constraints: ["priority_inversion=deny","starvation=deny"]
+
+    - id: "SY-CHR.SLA"
+      name: "SLA & Latencia Chrono"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-CHR.CA.TOL","PO-LOG","PO-CAN"]
+      outputs: ["latency_budget.yml","sla_tree.yml","latency_audit.log"]
+      slo_sla_ref: ["p95>=target","p99>=target","DTM_RLM_EDL_en_banda","SLA_target>=95%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C6"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "SY-CRD"
+      name: "Sistema Cardiovascular"
+      nature: "SY"
+      class: "structural"
+      phase_min: "F0"
+      dependencies: ["SY-CHR","SY-END","PO-CICD","PO-LOG","FR-CON","AG-CAR"]
+      outputs: ["eventbus_config.yml","metrics_bus.log","latency_report.json","traffic_audit.log","topology_map.yml","constants.yml","dependency_matrix.yml","coherence_assertions.ndjson","cardio_qos.log","chronological_clearance.log"]
+      slo_sla_ref: ["Latencia_p95<umbral","Perdida_critica=0","MTTR<=T","Entrega>=99.9%","Flujo_energetico=0.95-1.05","Sincronia<=±50ms","Ethical_Clearance>=0.90"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C4","C6","C7","C9"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "SY-REP"
+      name: "Sistema Reproductor"
+      nature: "SY"
+      class: "structural"
+      phase_min: "F0"
+      dependencies: ["SY-IMM","SY-END","SY-CHR","PO-EEE","PO-GEN","FR-FIL"]
+      outputs: ["genome.yml","heredity_policy.yml","proposal_runner.log","canary_audit.ndjson","rep_lineage.hash"]
+      slo_sla_ref: ["Propuestas_validas>=95%","Rollback_fallas=0","SLA_canary>=99%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C3","C4","C7"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-GEN","PO-EUE"]
+
+    - id: "SY-REP.MEM"
+      name: "Memoria Evolutiva"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-IMM","FR-FIL","PO-GEN"]
+      outputs: ["mem_trace.yml","heredity_index.json","audit_lineage.json","evo_memory.db","filogenic_memory.hash","mem_checkpoint.yml"]
+      slo_sla_ref: ["SCI>=0.9","Coherencia_hash>=99%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C3","C7"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-GEN"]
+
+    - id: "SY-NSC.MEM"
+      name: "Memoria Central"
+      nature: "SY"
+      class: "structural"
+      phase_min: "F0"
+      dependencies: ["SY-NSC.N","SY-REP.MEM","PO-LOG","FR-FIL"]
+      outputs: ["memory_log.json","episode_store.sqlite","lineage_full.db","memory_dashboard.html","audit_trace.json"]
+      slo_sla_ref: ["Durabilidad>=99.9%","Latencia_recall<=100ms","Cobertura_episodios>=90%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C3","C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "SY-MSC"
+      name: "Sistema Muscular"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-NSC.N","SY-END","SY-CHR"]
+      outputs: ["execution_log.json","trade_report.csv","latency_metrics.db","mscheduler_trace.yaml","telemetry_dashboard.html"]
+      slo_sla_ref: ["Latencia_p95<100ms","Duplicados=0","Reconciliacion_sin_desviacion"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C6"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "SY-DIG"
+      name: "Sistema Digestivo"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-RSP","SY-CRD","SY-LYM"]
+      outputs: ["dataset_clean.parquet","etl_log.json","dq_report.csv","feature_catalog.md","linaje.yml"]
+      slo_sla_ref: ["Barras_validas>=99%","Drift_schema=0","QA=100%_verde"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C3","C5","C6"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "SY-RSP"
+      name: "Sistema Respiratorio"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-CRD","SY-CHR","SY-DIG","SY-END"]
+      outputs: ["resp_policy.yml","resp_budget.yml","heartbeat.log","resp_status.json","metrics_report.ndjson","resp_runtime.log","resp_health.ndjson","resp_policy.signature"]
+      slo_sla_ref: ["Uptime>=99.9%","Jitter<=umbral","p95_delivery_en_presupuesto","Perdida_critica=0"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C6"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "SY-NSC.R"
+      name: "Cerebro Reptiliano"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-CHR","SY-IMM","SY-END"]
+      outputs: ["reptilian_policy.yml","panic_trigger.log","reflex_audit.json"]
+      slo_sla_ref: ["Tiempo_reaccion<Ns","Kill_switch_cumplimiento=100%","Falsos_positivos=0"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C6","C7"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "SY-NSC.L"
+      name: "Cerebro Límbico"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-END","SY-REP.MEM","SY-CHR"]
+      outputs: ["limbic_policy.yml","mood_report.log","affect_audit.json"]
+      slo_sla_ref: ["Oscilacion_apetito_en_banda","Estabilidad_emocional>=90%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C7"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "SY-NSC.L.PAI"
+      name: "Submódulo de Dolor"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-IMM","SY-REP.MEM","SY-CHR","SY-MCG","AVE"]
+      outputs: ["pain_policy.yml","pain_log.ndjson","vulnerability_map.json"]
+      slo_sla_ref: ["Deteccion_fallos>=95%","Recuperacion<=Ns","Recurrencia_reducida>=50%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C6","C7"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "SY-NSC.N"
+      name: "Neocórtex"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-DIG","SY-RSP","SY-CHR.SLA","SY-END","SY-NSC.MEM","PO-LOG","SY-IMM","PO-EEE"]
+      outputs: ["training_run.log","model_registry.json","oos_eval.csv","rationales.ndjson","explain_audit.ndjson","selector_metrics.json","model_card.hash","explain.digest","oos_report.ndjson"]
+      slo_sla_ref: ["Performance_OOS>=benchmark","p95_inferencia_en_presupuesto","Estabilidad_decision>=95%","Explicaciones_validas>=90%","Drift_bajo"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C3","C6","C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "SY-SEN"
+      name: "Sistema Sensorial Integrado"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies:
+        - "SY-CHR"
+        - "SY-END"
+        - "SY-NSC.N"
+        - "SY-NSC.L"
+        - "SY-NSC.MEM"
+        - "SY-DIG"
+      outputs: ["sensory_contract.yml","perception_log.yml","sensory_fusion.yml","sensory_ingest.schema.json","fusion_report.log","sensory_fusion.digest","sen_stream.audit"]
+      slo_sla_ref: ["Frescura>=95%","Drift<0.05","Uptime>=99.9%","Perdida_eventos_criticos=0"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C6"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "SY-SEN.VES"
+      name: "Sistema Vestibular Digital"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies:
+        - "SY-SEN"
+        - "SY-CHR"
+        - "SY-END"
+        - "SY-NSC.N"
+        - "SY-NSC.L"
+        - "SY-NSC.R"
+      outputs: ["equilibrium_contract.yml","stability_metrics.log","stability_baseline.yml","drift_monitor.schema.json","chrono_stability.log","feedforward_report.yml","stability.digest","vestibular.audit"]
+      slo_sla_ref: ["Drift<5%","Uptime>=99.9%","Variacion_latencia<10%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C6"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "SY-LAN"
+      name: "Sistema de Lenguaje Interno"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-SEN","SY-NSC.N","SY-MCG","SY-MOT","SY-AES","AVE","PO-LI"]
+      outputs: ["language_contract.yml","lexicon.yml","syntax_rules.json","discourse_log.ndjson","semantic_tests.cfg","lan_metrics.json","narrative_snapshots","lan_runtime.log","lexicon.digest"]
+      slo_sla_ref: ["Coherencia_semantica>=90%","Reformulacion_autonoma>=80%","Error_semantico<5%","Trazabilidad_discurso=100%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "SY-LAN.COM"
+      name: "Sistema de Lenguaje Interno – Comunicación Externa"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-LAN","SY-CHR","SY-NSC.N","SY-NSC.MEM","AVE","PO-LOG"]
+      outputs: ["com_protocol.yml","redaction_rules.json","exposure_matrix.yml","lan_audit.yml","dialogue_log.ndjson","rationales_public.json","speech_trace.log","lan_com.signature","redaction.digest"]
+      slo_sla_ref: ["p95_render<=150ms","Trazabilidad_semantica>=95%","Filtraciones_PII=0","Coherencia_estado=100%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "SY-MCG"
+      name: "Sistema Metacognitivo"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-NSC.N","SY-LAN","SY-CHR","SY-NSC.MEM","AVE","QA","SY-AES"]
+      outputs: ["meta_log.ndjson","meta_schema.json","self_eval.yml","bias_map.json","coherence_audit.log","reflection_report.md","meta_log.digest","meta_daily.report"]
+      slo_sla_ref: ["SCI>=0.9","Coherencia_accion_intencion>=85%","Correccion_automatica>=50%","Explicabilidad>=95%","Trazabilidad_decisiones=100%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C2","C3","C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "SY-LYM"
+      name: "Sistema Linfático"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-IMM","SY-CRD","AVE","FR-FIL"]
+      outputs: ["drain_policy.yml","lymph_audit.log","resilience_digest.hash","repair_queue.json","restore_ref.yml"]
+      slo_sla_ref: ["TTR_cuarentena<=T","Reincidencia_reduccion","Fugas=0","Auditoria>=95%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C3","C5","C7"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "SY-INT"
+      name: "Sistema Integumentario Dual"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-CHR","SY-END","SY-IMM","SY-CRD","AVE","FR-CON","FR-FIL"]
+      outputs: ["security_policy.yaml","perimeter_audit.log","ids_report.json","qos_policy.yml","perimeter_block.digest","restore_perimeter.yml"]
+      slo_sla_ref: ["Uptime>=99%","Reconexión_p95<Ns","Perdida_critica=0","Contratos_verde=100%","Auditoria>=99%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C6","C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "SY-AES"
+      name: "Sistema Estético"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-MCG","SY-LAN","SY-END","AVE","FR-FIL"]
+      outputs: ["beauty_score.json","aesthetic_feedback.yml","aesthetic_genome.yml","creation_digest.hash","harmony_report.yml","aesthetic_state.yml","trust_digest.hash"]
+      slo_sla_ref: ["Coherencia_util_bueno_bello>=90%","Outputs_bellos>=90%","Aesthetic_Harmony>=0.9","Symbolic_coherence>=0.9"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-GEN","PO-EUE"]
+
+    - id: "PO-EEI"
+      name: "Procedimiento de Evaluación Interna"
+      nature: "PO"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-CHR","SY-NSC.MEM","PO-GEN","PO-CICD","FR-FIL","AVE","QA","PO-EEE"]
+      outputs: ["evidence_packet.json","drift_report.json","ethical_score.json","challenge_outcome.log","rollback_signature","chronological_clearance.log","evolution_gate.log"]
+      slo_sla_ref: ["Suites_criticas>=99%","Drift<=tolerancia","Violaciones_Chrono=0","MTTR<=umbral","EthicalScore>=0.85"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C3","C6","C7","C8"]
+      governance_chain: ["PO-EEE","PO-EUE"]
+
+    - id: "PO-EEI.ETSC"
+      name: "Marco de Calibración del EthicalScore"
+      nature: "PO"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["PO-EEI","PO-EEE","FR-MIOI","AVE","QA","SY-CHR"]
+      outputs: ["ethicalscore_weights.yml","golden_cases_set.json","ER_records.log","delta_metric.csv","ethscore_calibration.md","er_trace_hash.csv","trace_hash.log"]
+      slo_sla_ref: ["EthicalScore_F2>=0.65","EthicalScore_F3>=0.70","EthicalScore_F4>=0.75","Transparency_index=100%","Accountability_ratio>=0.95","Conflict_detector=0"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C6","C7","C8"]
+      governance_chain: ["PO-EEE","PO-EUE"]
+
+    - id: "SY-MOT"
+      name: "Sistema Motivacional y de Atención"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies:
+        - "SY-END"
+        - "SY-NSC.L"
+        - "SY-NSC.N"
+        - "SY-CHR"
+        - "SY-AES"
+        - "SY-DIG"
+        - "PO-EEE"
+        - "PO-EEI"
+      outputs: ["motivation_policy.yml","reward_feedback.log","focus_map.json","motivation_delta.yml","motivation_trace.digest","drive_level.json"]
+      slo_sla_ref: ["EthicalScore>=0.75","Persistence>=0.85","Coherencia_intencion_accion>=0.9","Burnout<=0.05","COI>=0.88","SDR<=0.12","EDI>=0.85","FS<=0.75"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C2","C7"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "SY-SLP"
+      name: "Sistema de Sueño"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies:
+        - "SY-CHR"
+        - "SY-NSC.MEM"
+        - "SY-NSC.L"
+        - "SY-END"
+        - "SY-AES"
+        - "SY-DIG"
+        - "PO-EEE"
+        - "PO-EEI"
+      outputs: ["rest_cycle.yml","dream_log.ndjson","cooldown_trigger.yaml","insight_report.json","restruct_report.md","rest_metrics.yml"]
+      slo_sla_ref: ["Redundancia<15%","Limpieza>90%","SCI>=0.9","Coherencia_onirica>=0.8","Recuperacion_energetica>=85%","SRR>=0.9","ERR>=85%","RLD<=0.05s"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C6","C7"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "SY-SLP.REC"
+      name: "Ciclo de Recuperación"
+      nature: "SY"
+      class: "functional"
+      phase_min: "F0"
+      dependencies:
+        - "SY-CHR"
+        - "SY-NSC.MEM"
+        - "SY-END"
+        - "FR-MIOI"
+      outputs: ["recovery_cycle.log","rest_adapt.yml","recovery_init.yml","rest_metrics.yml","cooldown_trigger.yaml","dream_log.ndjson"]
+      slo_sla_ref: ["SRR>=0.9","ERR>=85%","RLD<=0.05s","SNI<=0.15"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C6"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "PR-FED"
+      name: "Protocolo de Federación IA"
+      nature: "PR"
+      class: "regulatory"
+      phase_min: "F0"
+      dependencies: ["FR-MIOI","FR-CON","PO-GEN","SY-REP"]
+      outputs: ["federation_contract.yml","sync_protocol.ndjson"]
+      slo_sla_ref: ["Federation_Coherence>=0.9"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "PR-FED.REG"
+      name: "Registro de Federaciones Confiables"
+      nature: "PR"
+      class: "regulatory"
+      phase_min: "F0"
+      dependencies: ["FR-FIL","FR-CON"]
+      outputs: ["federation_registry.yml","registry_schema.md","consistency_report.log","registry_log.hash","trust_certificate.yml","rollback_registry.yaml"]
+      slo_sla_ref: ["Consistencia=100%","Unicidad_federation_id","Coherencia_etica=True"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C3","C7"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "FR-EPI"
+      name: "Marco Epistemológico"
+      nature: "FR"
+      class: "governance"
+      phase_min: "F0"
+      dependencies:
+        - "SY-NSC.R"
+        - "SY-NSC.L"
+        - "SY-NSC.N"
+        - "SY-NSC.MEM"
+        - "PO-EEI"
+        - "FR-CON"
+      outputs: ["fr_epistemic_const.yml","knowledge_flow.md","epistemic_cycles.yaml"]
+      slo_sla_ref: ["Coherencia>=0.98","Etica_epistemica>=0.95","Trazabilidad>=0.9"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C2","C3","C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "FR-ONT"
+      name: "Marco Ontogenético"
+      nature: "FR"
+      class: "governance"
+      phase_min: "F0"
+      dependencies: ["SY-CHR","SY-END","SY-REP","PR-MGOV"]
+      outputs: ["ontogenic_cycle.yml","qa_growth_report.md","chrono_sync.log"]
+      slo_sla_ref: ["Homeostasis>=0.9","Plasticidad>=0.8","Sincronia_temporal>=0.95"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C2","C6"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "FR-MIOI"
+      name: "Marco de Inteligencia Orgánica Integrada"
+      nature: "FR"
+      class: "governance"
+      phase_min: "F0"
+      dependencies: ["PO-EEI","PO-EEE","AVE","SY-CHR","QA"]
+      outputs: ["mioi_state.snapshot","meta_learning.yml","epistemic_ledger.parquet","coherence_log.json"]
+      slo_sla_ref: ["Coherencia_jerarquica>=0.95","Etica>=0.9","Trazabilidad>=0.99","Resiliencia<=2_ciclos_Chrono"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C2","C3","C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "FR-CON"
+      name: "Marco de Constantes Universales"
+      nature: "FR"
+      class: "governance"
+      phase_min: "F0"
+      dependencies: ["FR-MIOI","PO-GEN.GOV"]
+      outputs: ["constants.yml","laws.yml","dependency_matrix.yml"]
+      slo_sla_ref: ["TRACE_COMPLETENESS>=0.99","SYNCHRONY_WINDOW_MS<=50ms","PURPOSE_ALIGNMENT_SCORE>=0.9","EVIDENCE_RATIO_REQUIRED>=0.8","FEEDBACK_LATENCY_MS<=1000ms"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C1","C2","C3","C4","C5","C6","C7","C8","C9"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "PO-EUE"
+      name: "Procedimiento de Eje Umbilical Evaluador"
+      nature: "PO"
+      class: "regulatory"
+      phase_min: "F0"
+      dependencies: ["FR-CON","FR-MIOI","AVE","PO-GEN.GOV","PR-MGOV.FED"]
+      outputs: ["evaluation_log","promotion_decision","rollback_trigger","ethical_telemetry.csv"]
+      slo_sla_ref: ["Coherencia>=95%","Etica=100%","Retroalimentacion>=90%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C7","C8","C9"]
+      governance_chain: ["PO-EEE","PR-MGOV","FR-FIL"]
+
+    - id: "PO-CICD"
+      name: "Integración y Despliegue Continuos"
+      nature: "PO"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-CHR","PO-LOG","PO-GEN","FR-MIOI"]
+      outputs: ["namespace.yml","ci_contracts.yaml","build_manifest.yml","build.log","ci_summary.json","coverage.xml","rollback_plan.md","deployment_assertions.ndjson"]
+      slo_sla_ref: ["Stability>=0.95","MTTR<=3min","Coverage>=0.9","Ethical_clearance>=0.9"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C3","C5","C6","C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE"]
+
+    - id: "PO-LOG.REP"
+      name: "Submódulo de Reporte Analítico"
+      nature: "PO"
+      class: "functional"
+      phase_min: "F0"
+      dependencies: ["SY-CHR.CA","PO-CICD.OBS","PO-SEC.MON","PO-GEN","PR-EEE"]
+      outputs: ["report_schema.yml","incidents/*.json","reports/*.md","ethic_log_view.json","purpose_alignment_report.yml","reports/ops_*.md","postmortems/*.md","governance_digest.md","ethical_impact.json","report_digest.hash"]
+      slo_sla_ref: ["SynC>=95%","RCP>=0.8","TTI<=5min","EIN>=90%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C3","C6","C7","C8"]
+      governance_chain: ["PO-EEI","PO-EEE","PO-EUE"]
+
+    - id: "PO-MGE"
+      name: "Gobernanza Evolutiva"
+      nature: "PO"
+      class: "regulatory"
+      phase_min: "F0"
+      dependencies: ["FR-MIOI","PR-MGOV","PO-GEN","PO-EEI","PR-EEE","AVE","QA","SY-CHR","FR-FIL","PO-GEN.GOV"]
+      outputs: ["filogenic_ledger.ndjson","genome_hash.sig","ethics_attest.yml","umbilical_transfer.log","mge_decision.audit","federation_audit.log","mutation_governance.yaml"]
+      slo_sla_ref: ["Integridad_genetica>=99.9%","Compatibilidad_hereditaria>=95%","Alineacion_etica>=0.90","Reversibilidad=100%","Drift_intergeneracional<=5%"]
+      trace_required: true
+      mutable: false
+      uses_constants: ["C3","C4","C7","C9"]
+      governance_chain: ["PO-EEE","PO-EUE","PR-MGOV"]
